@@ -15,8 +15,12 @@ class Frame{
     bool pinned;       // either pinned or unpinned
     bool second_chance;         // for clock replacement algorithm
 
+    Frame();
+    Frame(const Frame& f);
     void setFrame(FILE*fp, int pageNum, char* pageData, bool pinned);
     void unpinFrame();
+
+    ~Frame();
 };
 
 
@@ -39,7 +43,17 @@ class BufStats{
     void clear();
 };
 
-class LRUBufferManager{
+class ReplacementPolicy {
+public:
+    virtual ~ReplacementPolicy() {}
+    virtual char* getPage(FILE*fp, int pageNum) = 0;
+    virtual void unpinPage(FILE*fp, int pageNum) = 0;
+    virtual BufStats getStats() = 0;
+    virtual void clearStats() = 0;
+};
+
+
+class LRUBufferManager: public ReplacementPolicy{
 
     private:
     int numFrames;    // number of frames that can be fit in pool
@@ -58,7 +72,7 @@ class LRUBufferManager{
 
 
 // implement clock replacementr algorithm
-class ClockBufferManager{
+class ClockBufferManager: public ReplacementPolicy{
 
     private:
     int numFrames;    // number of frames that can be fit in pool

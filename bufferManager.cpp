@@ -1,7 +1,17 @@
 #include "bufferManager.hpp"
 
 
+// constructor for Frame
+Frame::Frame(){}
 
+// copy constructor for Frame
+Frame::Frame(const Frame &frame){
+    this->pageNum = frame.pageNum;
+    this->pageData = strdup(frame.pageData);
+    this->fp = frame.fp;
+    this->pinned = frame.pinned;
+    this->second_chance = frame.second_chance;
+}
 
 // populates a frame in Memory
 void Frame::setFrame(FILE*fp, int pageNum, char* pageData, bool pinned){
@@ -17,13 +27,22 @@ void Frame::unpinFrame(){
     this->pinned = false;
 }
 
+// destructor for Frame
+Frame::~Frame(){
+    delete[] pageData;
+}
+
 
 // constructor for LRUBufferManager
 LRUBufferManager::LRUBufferManager(int numFrames): numFrames(numFrames) {}
 
 // destructor for LRUBufferManager
 LRUBufferManager::~LRUBufferManager(){
-    
+    for(auto it=lru.begin();it!=lru.end();++it){
+        delete[] it->pageData;
+    }
+    lru.clear();
+    mp.clear();
 }
 
 // get a page from buffer
@@ -31,46 +50,41 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
 
     // check if page present in memory using map
     auto it = mp.find({fp, pageNum});
-    if(it != mp.end()){
+    if(it!=mp.end()){
+        stats.accesses++;
         // page present in memory
-        // update stats
-        stats.accesses++;
-        // update LRU
-        lru.splice(lru.begin(), lru, it->second);
-        return it->second->pageData;
-    }
-    else{
-        // page not present in memory
-        // update stats
-        stats.accesses++;
-        stats.diskreads++;
-        // check if memory is full
-        if(lru.size() == numFrames){
-            // memory is full
-            // check if last page is pinned
-            if(lru.back().pinned){
-                // last page is pinned
-                // update stats
-                stats.diskreads--;
-                return NULL;
-            }
-            else{
-                // last page is unpinned
-                // remove last page from memory
-                mp.erase({lru.back().fp, lru.back().pageNum});
-                lru.pop_back();
-            }
-        }
-        // read page from disk
-        char* pageData = new char[PAGE_SIZE];
-        fseek(fp, pageNum*PAGE_SIZE, SEEK_SET);
-        fread(pageData, PAGE_SIZE, 1, fp);
-        // add page to memory
-        lru.push_front(Frame());
-        lru.front().setFrame(fp, pageNum, pageData, false);
+        lru.push_front(*it->second);
+        lru.erase(it->second);
         mp[{fp, pageNum}] = lru.begin();
-        return pageData;
+        return lru.begin()->pageData;
     }
+    // if page is not in memory
+    // check if space is there in buffer
+
+    if(lru.size() == numFrames){
+        if(lru.back().pinned){
+            // no space in buffer
+            // return null
+            return NULL;
+        }
+        // remove last page from list
+        mp.erase({lru.back().fp, lru.back().pageNum});
+        lru.pop_back();
+    }
+
+    // add the page to buffer
+    char* pageData = new char[PAGE_SIZE];
+    fseek(fp, pageNum*PAGE_SIZE, SEEK_SET);
+    fread(pageData, PAGE_SIZE, 1, fp);
+
+    Frame frame = Frame();
+    frame.setFrame(fp, pageNum, pageData, true);
+
+    lru.push_front(frame);
+    mp[{fp, pageNum}] = lru.begin();
+    stats.accesses++;
+    stats.diskreads++;
+    return pageData;
 }
 
 // clear stats
@@ -101,6 +115,10 @@ void LRUBufferManager::unpinPage(FILE*fp, int pageNum){
         // page present in memory
         // unpin page
         it->second->unpinFrame();
+        // send page to back of list
+        lru.push_back(*it->second);
+        lru.erase(it->second);
+        mp[{fp, pageNum}] = --lru.end();
     }
 }
 
@@ -161,9 +179,10 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
         // seek the page in file
         fseek(fp, pageNum*PAGE_SIZE, SEEK_SET);
         fread(bufferPool[clock_hand].pageData, PAGE_SIZE, 1, fp);
+        int store = clock_hand;
         clock_hand = (clock_hand+1)%numFrames;
         stats.diskreads++;
-        return bufferPool[clock_hand].pageData;
+        return bufferPool[store].pageData;
     }
 }
 
@@ -179,5 +198,15 @@ void ClockBufferManager::unpinPage(FILE* fp, int pageNum){
             return;
         }
     }
+}
+
+// clear stats
+void ClockBufferManager::clearStats(){
+    stats.clear();
+}
+
+// get stats
+BufStats ClockBufferManager::getStats(){
+    return stats;
 }
 
