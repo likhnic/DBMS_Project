@@ -13,6 +13,7 @@ class Frame{
     char* pageData;    // data in page
     FILE *fp;          // file to which this page belongs to
     bool pinned;       // either pinned or unpinned
+    bool second_chance;         // for clock replacement algorithm
 
     void setFrame(FILE*fp, int pageNum, char* pageData, bool pinned);
     void unpinFrame();
@@ -33,7 +34,6 @@ class BufStats{
     public:
     int accesses;
     int diskreads;
-    int diskwrites;
 
     BufStats();
     void clear();
@@ -57,9 +57,23 @@ class LRUBufferManager{
 };
 
 
+// implement clock replacementr algorithm
 class ClockBufferManager{
+
     private:
-    
+    int numFrames;    // number of frames that can be fit in pool
+    Frame* bufferPool;  // list to implement clock
+    int clock_hand;   // clock hand
+    BufStats stats;
+    int numPages;
+
+    public:
+    ClockBufferManager(int numFrames);
+    char* getPage(FILE*fp, int pageNum);
+    ~ClockBufferManager();
+    void unpinPage(FILE*fp, int pageNum);
+    BufStats getStats();
+    void clearStats();
 };
 
 

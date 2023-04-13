@@ -2,7 +2,7 @@
 
 // constructor for QueryProcessor
 QueryProcessor::QueryProcessor(int numFrames){
-    bufferManager = new LRUBufferManager(numFrames);
+    bufferManager = new ClockBufferManager(numFrames);
 }
 
 // process a select from query

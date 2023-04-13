@@ -11,7 +11,7 @@ using namespace std;
 
 class QueryProcessor{
     private:
-    LRUBufferManager* bufferManager;
+    ClockBufferManager* bufferManager;
     public:
     QueryProcessor(int numFrames);
     void processQuery(FILE *fp, int col1, string value);

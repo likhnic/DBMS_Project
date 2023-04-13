@@ -8,6 +8,8 @@ int main(){
     fp = fopen("fileBinary.bin", "wb");
     int numPages = 10;
     fwrite(&numPages, sizeof(int), 1, fp);
+    numPages = 0;
+    fwrite(&numPages, sizeof(int), 1, fp);
     numPages = 20;
     fwrite(&numPages, sizeof(int), 1, fp);
     numPages = 30;
@@ -24,14 +26,22 @@ int main(){
     fclose(fp);
 
     fp = fopen("fileBinary.bin", "rb");
-    int numbers[5];
-    int readSize = fread(numbers, sizeof(int), 5, fp);
+    // int numbers[5];
+    // int readSize = fread(numbers, sizeof(int), 5, fp);
 
-    cout << readSize << endl;
-    // cout << buffer << endl;
-    for(int i=0; i<5; i++){
-        cout << numbers[i] << endl;
-    }
+    // cout << readSize << endl;
+    // // cout << buffer << endl;
+    // for(int i=0; i<5; i++){
+    //     cout << numbers[i] << endl;
+    // }
+
+    int num1, num2;
+
+    fread(&num1, sizeof(int), 1, fp);
+    fread(&num2, sizeof(int), 1, fp);
+
+    cout << num1 << endl;
+    cout << num2 << endl;
 
     fclose(fp);
 }
