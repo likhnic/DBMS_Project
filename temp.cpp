@@ -47,14 +47,17 @@ int main(){
     // it++;
     // mp[1] = it;
 
-    // mp.erase(1);
+    mp.erase(1);
 
-    x X = x();
-    x X2 = x();
+    // x X = x();
+    // x X2 = x();
     
-    cout<<"1\n";
-    l.push_back(X);
-    cout<<"2\n";
+    // cout<<"1\n";
+    // l.push_back(X);
+    // cout<<"2\n";
 
+    l.clear();
+    cout<<"OK\n";
+    mp.clear();
     cout<<"Hello\n";
 }

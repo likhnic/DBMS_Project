@@ -91,6 +91,24 @@ class ClockBufferManager: public ReplacementPolicy{
 };
 
 
+class MRUBufferManager: public ReplacementPolicy{
+
+    private:
+    int numFrames;    // number of frames that can be fit in pool
+    list<Frame> mru;  // list to implement MRU
+    unordered_map<pair<FILE*, int>, list<Frame>::iterator, PairHash> mp;   // map to identify whether a page is present in buffer or not
+    BufStats stats;
+
+    public:
+    MRUBufferManager(int numFrames);
+    char* getPage(FILE*fp, int pageNum);
+    ~MRUBufferManager();
+    BufStats getStats();
+    void clearStats();
+    void unpinPage(FILE*fp, int pageNum);
+};
+
+
 
 
 

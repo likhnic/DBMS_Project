@@ -17,8 +17,8 @@ int main(){
     fp = fopen("fileBinary.bin", "wb");
 
 
-    Person p[100000];
-    for(int i=0; i<100000; i++){
+    Person p[1000];
+    for(int i=0; i<1000; i++){
         string name = "abc" + to_string(i);
         strcpy(p[i].name, name.c_str());
         p[i].age = rand()%20+5;
@@ -28,15 +28,25 @@ int main(){
 
     int recordSize = sizeof(Person);
 
-    int i=0;
-    while(1){
+    // add first 4 bytes in page 1 as number of records in last page
 
+
+    int i=0;
+    int totalRecords = 1000;
+    while(1){
         int numLeft = PAGE_SIZE;
+        // starting of each page add number of records in this page
+        int possible = (PAGE_SIZE-4)/recordSize;
+        int recordsInPage = min(possible, totalRecords);
+        fwrite(&recordsInPage, sizeof(int), 1, fp);
+        totalRecords -= recordsInPage;
+        numLeft -= sizeof(int);
+
         while(numLeft >= recordSize){
             fwrite(&p[i], recordSize, 1, fp);
             numLeft -= recordSize;
             i++;
-            if(i==100000){
+            if(i==1000){
                 break;
             }
         }
@@ -45,7 +55,7 @@ int main(){
             fwrite(&c, sizeof(char), 1, fp);
             numLeft--;
         }
-        if(i==100000){
+        if(i==1000){
             break;
         }
     }

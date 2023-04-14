@@ -17,7 +17,8 @@ class QueryProcessor{
     ReplacementPolicy* bufferManager;
     public:
     QueryProcessor(int numFrames, int replacementPolicy);
-    void processQuery(FILE *fp, int col1, string value);
+    void processSelectQuery(FILE *fp, int col1, string value);
+    void processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2);
 };
 
 
