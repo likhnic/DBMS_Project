@@ -61,7 +61,6 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
     // check if space is there in buffer
 
     if((int)lru.size() == numFrames){
-        // cout<<"No space in buffer\n";
         if(lru.back().pinned){
             // no space in buffer
             // return null
@@ -70,7 +69,6 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
         // remove last page from list
         mp.erase({lru.back().fp, lru.back().pageNum});
         lru.pop_back();
-        // cout<<"Page removed from memory "<<lru.size()<<endl;
     }
 
     // add the page to buffer

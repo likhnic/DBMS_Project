@@ -22,13 +22,15 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
     numPages = ftell(fp)/PAGE_SIZE;
     fseek(fp, 0, SEEK_SET);
 
-    cout<<numPages<<endl;
     // iterate over all pages
     for(int i=0;i<numPages;++i){
         // get page from buffer
         char *pageData = bufferManager->getPage(fp, i);
         int numLeft = PAGE_SIZE;
-        while(numLeft >= recordSize){
+        int numRecords;
+        memcpy(&numRecords, pageData, sizeof(int));
+        pageData += sizeof(int);
+        while(numRecords--){
             char name[20];
             int age;
             int weight;
@@ -44,6 +46,9 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
         // unpin page
         bufferManager->unpinPage(fp, i);
     }
+    cout<<"Page hits: "<<bufferManager->getStats().accesses<<endl;
+    cout<<"Page fault and Disk Reads: "<<bufferManager->getStats().diskreads<<endl;
+
 }
 
 
@@ -74,7 +79,6 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
             int numRecords1;
             memcpy(&numRecords1, pageData1, sizeof(int));
             page1Offset += sizeof(int);
-            cout<<"*** "<<numRecords1<<endl;
             while(numRecords1--){
                 char name1[20];
                 x++;
@@ -106,6 +110,9 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
         bufferManager->unpinPage(fp1, i);
     }
 
+    cout<<"Page hits: "<<bufferManager->getStats().accesses<<endl;
+    cout<<"Page fault and Disk Reads: "<<bufferManager->getStats().diskreads<<endl;
+
 }
 
 int main(){
@@ -114,7 +121,8 @@ int main(){
     FILE *fp2 = fopen("fileBinary.bin", "rb");
 
     QueryProcessor qp(10, MRU);
-    qp.processJoinQuery(fp1, fp2, 1, 1);
+    // qp.processJoinQuery(fp1, fp2, 1, 1);
+    qp.processSelectQuery(fp1, 1, "20");
 
     fclose(fp1);
     fclose(fp2);
