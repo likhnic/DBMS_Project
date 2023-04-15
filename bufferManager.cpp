@@ -61,14 +61,17 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
     // check if space is there in buffer
 
     if((int)lru.size() == numFrames){
-        if(lru.back().pinned){
-            // no space in buffer
-            // return null
-            return NULL;
+
+        // find first unpinned page and remove it
+        auto it = lru.begin();
+        while(it!=lru.end()){
+            if(!it->pinned){
+                mp.erase({it->fp, it->pageNum});
+                lru.erase(it);
+                break;
+            }
+            it++;
         }
-        // remove last page from list
-        mp.erase({lru.back().fp, lru.back().pageNum});
-        lru.pop_back();
     }
 
     // add the page to buffer
@@ -116,10 +119,6 @@ void LRUBufferManager::unpinPage(FILE*fp, int pageNum){
         // page present in memory
         // unpin page
         it->second->unpinFrame();
-        // send page to back of list
-        lru.push_back(*it->second);
-        lru.erase(it->second);
-        mp[{fp, pageNum}] = --lru.end();
     }
 }
 
