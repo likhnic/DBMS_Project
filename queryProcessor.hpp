@@ -1,7 +1,6 @@
 #ifndef __QUERY_PROCESSOR_H_
 #define __QUERY_PROCESSOR_H_
 
-#include <bits/stdc++.h>
 #include "bufferManager.hpp"
 using namespace std;    
 

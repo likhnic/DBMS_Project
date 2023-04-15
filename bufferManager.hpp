@@ -1,26 +1,37 @@
 #ifndef __BUF_MANAGER_H_
 #define __BUF_MANAGER_H_
 
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string.h>
+#include <string>
+#include <unordered_map>
+#include <iterator>
+#include <list>
 using namespace std;
 #define PAGE_SIZE 4096
 
 // // implementing buffer manager for LRU using Pinned and Unpinned pages 
 // class of Frame which is an entity in Memory to store a Page
 class Frame{
-    public:
+    private:
     int pageNum;       // page number of page
     char* pageData;    // data in page
     FILE *fp;          // file to which this page belongs to
     bool pinned;       // either pinned or unpinned
     bool second_chance;         // for clock replacement algorithm
 
-    Frame();
-    Frame(const Frame& f);
     void setFrame(FILE*fp, int pageNum, char* pageData, bool pinned);
     void unpinFrame();
 
+
+    public:
+    Frame();
+    Frame(const Frame& f);
     ~Frame();
+    friend class LRUBufferManager;
+    friend class ClockBufferManager;
+    friend class MRUBufferManager;
 };
 
 

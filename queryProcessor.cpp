@@ -39,7 +39,13 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
             memcpy(&weight, pageData+20*sizeof(char)+sizeof(int), sizeof(int));
             pageData += recordSize;
             numLeft -= recordSize;
-            if(age == atoi(value.c_str())){
+            if(col1==2 && age == atoi(value.c_str())){
+                cout<<name<<" "<<age<<" "<<weight<<endl;
+            }
+            else if(col1==3 && weight == atoi(value.c_str())){
+                cout<<name<<" "<<age<<" "<<weight<<endl;
+            }
+            else if(col1==1 && value == name){
                 cout<<name<<" "<<age<<" "<<weight<<endl;
             }
         }
@@ -100,8 +106,16 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
                     memcpy(&age2, pageData2+page2Offset+20*sizeof(char), sizeof(int));
                     memcpy(&weight2, pageData2+page2Offset+20*sizeof(char)+sizeof(int), sizeof(int));
                     page2Offset += recordSize2;
-                    if(age1 == age2){
-                        cout<<name1<<" "<<name2<<" "<<age1<<" "<<weight1<<" "<<weight2<<endl;
+                    string allCols1[3];
+                    allCols1[0] = name1;
+                    allCols1[1] = to_string(age1);
+                    allCols1[2] = to_string(weight1);
+                    string allCols2[3];
+                    allCols2[0] = name2;
+                    allCols2[1] = to_string(age2);
+                    allCols2[2] = to_string(weight2);
+                    if(allCols1[col1-1] == allCols2[col2-1]){
+                        cout<<name1<<" "<<age1<<" "<<weight1<<" "<<name2<<" "<<age2<<" "<<weight2<<endl;
                     }
                 }
             }
@@ -120,9 +134,49 @@ int main(){
     FILE *fp1 = fopen("fileBinary.bin", "rb");
     FILE *fp2 = fopen("fileBinary.bin", "rb");
 
-    QueryProcessor qp(10, MRU);
-    // qp.processJoinQuery(fp1, fp2, 1, 1);
-    qp.processSelectQuery(fp1, 1, "20");
+    cout<<"Select a Replacement Algorithm:\n";
+    cout<<"1 LRU, 2 CLOCK, 3 MRU: ";
+    int choice;
+    cin>>choice;
+
+    if(choice<1 || choice>3){
+        cout<<"Invalid choice\n";
+        exit(1);
+    }
+
+    cout<<"Enter number of frames: ";
+    int numFrames;
+    cin>>numFrames;
+
+    QueryProcessor qp(numFrames, choice);
+
+    cout<<"Enter 1 for select query, 2 for join query: ";
+    int queryType;
+    cin>>queryType;
+
+    if(queryType == 1){
+        cout<<"Enter column number of Database: ";
+        int col;
+        cin>>col;
+        cout<<"Enter value to get all matching records: ";
+        string value;
+        cin>>value;
+        qp.processSelectQuery(fp1, col, value);
+    }
+    else if(queryType == 2){
+        cout<<"Enter column number of Database 1: ";
+        int col1;
+        cin>>col1;
+        cout<<"Enter column number of Database 2: ";
+        int col2;
+        cin>>col2;
+        qp.processJoinQuery(fp1, fp2, col1, col2);
+    }
+    else{
+        cout<<"Invalid query type\n";
+        exit(1);
+    }
+
 
     fclose(fp1);
     fclose(fp2);
