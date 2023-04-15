@@ -76,10 +76,16 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
 
     for(int i=0;i<numPages1;++i){
         char* pageData1 = bufferManager->getPage(fp1, i);        
-        if(pageData1 == NULL) cout<<"NULL\n";
+        if(pageData1 == NULL){
+            cout<<"Number of Frames is too small\n";
+            exit(0);
+        }
         for(int j=0;j<numPages2;++j){
             char* pageData2 = bufferManager->getPage(fp2, j);
-            if(pageData2 == NULL) cout<<"NULL\n";
+            if(pageData2 == NULL){
+                cout<<"Number of Frames is too small\n";
+                exit(0);
+            }
             int x = 0;
             int page1Offset = 0;
             int numRecords1;
