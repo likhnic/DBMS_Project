@@ -62,16 +62,13 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
 
     if((int)lru.size() == numFrames){
 
-        // find first unpinned page and remove it
-        auto it = lru.begin();
-        while(it!=lru.end()){
-            if(!it->pinned){
-                mp.erase({it->fp, it->pageNum});
-                lru.erase(it);
-                break;
-            }
-            it++;
-        }
+        // find last unpinned page and remove it
+        auto it = lru.end();
+        it--;
+        while(it->pinned)it--;
+        // remove page from buffer
+        mp.erase({it->fp, it->pageNum});
+        lru.erase(it);
     }
 
     // add the page to buffer
