@@ -52,7 +52,7 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
         // unpin page
         bufferManager->unpinPage(fp, i);
     }
-    cout<<"Page hits: "<<bufferManager->getStats().accesses<<endl;
+    cout<<"Page Accesses: "<<bufferManager->getStats().accesses<<endl;
     cout<<"Page fault and Disk Reads: "<<bufferManager->getStats().diskreads<<endl;
 
 }
@@ -130,7 +130,7 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
         bufferManager->unpinPage(fp1, i);
     }
 
-    cout<<"Page hits: "<<bufferManager->getStats().accesses<<endl;
+    cout<<"Page Accesses: "<<bufferManager->getStats().accesses<<endl;
     cout<<"Page fault and Disk Reads: "<<bufferManager->getStats().diskreads<<endl;
 
 }
