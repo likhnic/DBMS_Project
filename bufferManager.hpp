@@ -72,6 +72,7 @@ class LRUBufferManager: public ReplacementPolicy{
     list<Frame> lru;  // list to implement LRU
     unordered_map<pair<FILE*, int>, list<Frame>::iterator, PairHash> mp;   // map to identify whether a page is present in buffer or not
     BufStats stats;
+    FILE *file;         // file to store log
 
     public:
     LRUBufferManager(int numFrames);
@@ -92,6 +93,7 @@ class ClockBufferManager: public ReplacementPolicy{
     int clock_hand;   // clock hand
     BufStats stats;
     int numPages;
+    FILE *file;         // file to store log
 
     public:
     ClockBufferManager(int numFrames);
@@ -110,6 +112,7 @@ class MRUBufferManager: public ReplacementPolicy{
     list<Frame> mru;  // list to implement MRU
     unordered_map<pair<FILE*, int>, list<Frame>::iterator, PairHash> mp;   // map to identify whether a page is present in buffer or not
     BufStats stats;
+    FILE *file;         // file to store log
 
     public:
     MRUBufferManager(int numFrames);

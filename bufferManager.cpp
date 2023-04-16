@@ -35,12 +35,16 @@ Frame::~Frame(){
 
 
 // constructor for LRUBufferManager
-LRUBufferManager::LRUBufferManager(int numFrames): numFrames(numFrames) {}
+LRUBufferManager::LRUBufferManager(int numFrames): numFrames(numFrames) {
+    file = fopen("bufferManager.txt", "w");
+    fprintf(file, "LRU Buffer Manager\n");
+}
 
 // destructor for LRUBufferManager
 LRUBufferManager::~LRUBufferManager(){
     lru.clear();    // calls destructor of Frame so delete of pageData happens
     mp.clear();
+    fclose(file);
 }
 
 // get a page from buffer
@@ -56,6 +60,7 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
         lru.erase(it->second);
         mp[{fp, pageNum}] = lru.begin();
         lru.begin()->pinned = true;
+        fprintf(file, "Page Hit\t\t\tPage %d of file %p is added to buffer\n", pageNum, fp);
         return lru.begin()->pageData;
     }
     // if page is not in memory
@@ -73,6 +78,7 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
         // remove page from buffer
         mp.erase({it->fp, it->pageNum});
         lru.erase(it);
+        fprintf(file, "Page Removed\t\t\tPage %d of file %p is removed from buffer\n", it->pageNum, it->fp);
     }
 
     // add the page to buffer
@@ -87,8 +93,7 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
     mp[{fp, pageNum}] = lru.begin();
     stats.accesses++;
     stats.diskreads++;
-    char name[20];
-    memcpy(name, pageData, 20);
+    fprintf(file, "Disk Read\t\t\tPage %d of file %p is added to buffer\n", pageNum, fp);
     return lru.begin()->pageData;
 }
 
@@ -127,11 +132,14 @@ void LRUBufferManager::unpinPage(FILE*fp, int pageNum){
 // constructor for ClockBufferManager
 ClockBufferManager::ClockBufferManager(int numFrames): numFrames(numFrames), clock_hand(0), numPages(0){
     bufferPool = new Frame[numFrames];
+    file = fopen("bufferManager.txt", "w");
+    fprintf(file, "Clock Buffer Manager\n");
 }
 
 // destructor for ClockBufferManager
 ClockBufferManager::~ClockBufferManager(){
     delete[] bufferPool;
+    fclose(file);
 }
 
 // get a page from buffer
@@ -148,6 +156,7 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
             bufferPool[i].second_chance = true;
             bufferPool[i].pinned = true;
             stats.pageHits++;
+            fprintf(file, "Page Hit\t\t\tPage %d of file %p is present in buffer\n", pageNum, fp);
             return bufferPool[i].pageData;
         }
     }
@@ -161,6 +170,7 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
         numPages++;
         stats.accesses++;
         stats.diskreads++;
+        fprintf(file, "Disk Read\t\t\tPage %d of file %p is added to buffer\n", pageNum, fp);
         return pageData;
     }
     stats.accesses++;
@@ -179,6 +189,7 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
         }
         // page is not pinned and does not have second chance
         // seek the page in file
+        fprintf(file, "Buffer Full\t\t\tPage %d of file %p is removed from buffer\n", bufferPool[clock_hand].pageNum, bufferPool[clock_hand].fp);
         fseek(fp, pageNum*PAGE_SIZE, SEEK_SET);
         fread(bufferPool[clock_hand].pageData, PAGE_SIZE, 1, fp);
         bufferPool[clock_hand].fp = fp;
@@ -188,6 +199,7 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
         int store = clock_hand;
         clock_hand = (clock_hand+1)%numFrames;
         stats.diskreads++;
+        fprintf(file, "Disk Read\t\t\tPage %d of file %p is added to buffer\n", pageNum, fp);
         return bufferPool[store].pageData;
     }
 }
@@ -217,12 +229,16 @@ BufStats ClockBufferManager::getStats(){
 }
 
 // constructor for MRUBufferManager
-MRUBufferManager::MRUBufferManager(int numFrames): numFrames(numFrames) {}
+MRUBufferManager::MRUBufferManager(int numFrames): numFrames(numFrames) {
+    file = fopen("bufferManager.txt", "w");
+    fprintf(file, "MRU Buffer Manager\n");
+}
 
 // destructor for MRUBufferManager
 MRUBufferManager::~MRUBufferManager(){
     mru.clear();      // the destructor of frame will be automatically called
     mp.clear();
+    fclose(file);
 }
 
 // get a page from buffer
@@ -238,6 +254,7 @@ char *MRUBufferManager::getPage(FILE* fp, int pageNum){
         mp[{fp, pageNum}] = mru.begin();
         mru.begin()->pinned = true;
         stats.pageHits++;
+        fprintf(file, "Page Hit\t\t\tPage %d of file %p is present in buffer\n", pageNum, fp);
         return mru.begin()->pageData;
     }
 
@@ -252,12 +269,12 @@ char *MRUBufferManager::getPage(FILE* fp, int pageNum){
             }
             // page is not pinned
             // remove it from memory
+            fprintf(file, "Buffer Full\t\t\tPage %d of file %p is removed from buffer\n", it->pageNum, it->fp);
             mp.erase({it->fp, it->pageNum});
             mru.erase(it);
             removed = 1;
             break;
         }
-
         if(!removed)return NULL;
     }
 
@@ -272,6 +289,7 @@ char *MRUBufferManager::getPage(FILE* fp, int pageNum){
     mp[{fp, pageNum}] = mru.begin();
     stats.accesses++;
     stats.diskreads++;
+    fprintf(file, "Disk Read\t\t\tPage %d of file %p is added to buffer\n", pageNum, fp);
     return mru.begin()->pageData;
 }
 
