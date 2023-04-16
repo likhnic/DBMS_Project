@@ -164,7 +164,6 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
         return pageData;
     }
     stats.accesses++;
-    stats.diskreads++;
     // page is not present in memory and memory is full
     while(true){
         if(bufferPool[clock_hand].second_chance){
