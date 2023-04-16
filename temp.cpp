@@ -13,6 +13,7 @@ QueryProcessor::QueryProcessor(int numFrames, int replacementPolicy){
 
 vector<vector<int> >access(3);
 vector<vector<int> >diskReads(3);
+vector<vector<int> >pageHits(3);
 
 
 
@@ -63,6 +64,7 @@ vector<int> QueryProcessor::processSelectQuery(FILE *fp, int col1, string value)
     vector<int> v;
     v.push_back(bufferManager->getStats().accesses);
     v.push_back(bufferManager->getStats().diskreads);
+    v.push_back(bufferManager->getStats().pageHits);
     return v;
 }
 
@@ -144,6 +146,7 @@ vector<int> QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int
     vector<int> v;
     v.push_back(bufferManager->getStats().accesses);
     v.push_back(bufferManager->getStats().diskreads);
+    v.push_back(bufferManager->getStats().pageHits);
     return v;
     
 }
@@ -204,6 +207,7 @@ int main(){
             v = qp.processJoinQuery(fp1, fp2, 2, 2);
             access[choice-1].push_back(v[0]);
             diskReads[choice-1].push_back(v[1]);
+            pageHits[choice-1].push_back(v[2]);
         }
     }
 
@@ -217,6 +221,13 @@ int main(){
     for(int i=0;i<3;++i){
         for(int j=0;j<19;++j){
             cout<<diskReads[i][j]<<" ";
+        }
+        cout<<endl;
+    }
+
+    for(int i=0;i<3;++i){
+        for(int j=0;j<19;++j){
+            cout<<pageHits[i][j]<<" ";
         }
         cout<<endl;
     }

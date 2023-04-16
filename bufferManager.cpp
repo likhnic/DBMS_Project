@@ -50,6 +50,7 @@ char* LRUBufferManager::getPage(FILE*fp, int pageNum){
     auto it = mp.find({fp, pageNum});
     if(it!=mp.end()){
         stats.accesses++;
+        stats.pageHits++;
         // page present in memory
         lru.push_front(*it->second);
         lru.erase(it->second);
@@ -102,12 +103,13 @@ BufStats LRUBufferManager::getStats(){
 }
 
 // constructor for BufStats
-BufStats::BufStats(): accesses(0), diskreads(0) {}
+BufStats::BufStats(): accesses(0), diskreads(0), pageHits(0) {}
 
 // clear stats
 void BufStats::clear(){
     accesses = 0;
     diskreads = 0;
+    pageHits = 0;
 }
 
 
@@ -145,6 +147,7 @@ char *ClockBufferManager::getPage(FILE* fp, int pageNum){
             // update second chance
             bufferPool[i].second_chance = true;
             bufferPool[i].pinned = true;
+            stats.pageHits++;
             return bufferPool[i].pageData;
         }
     }
@@ -235,6 +238,7 @@ char *MRUBufferManager::getPage(FILE* fp, int pageNum){
         mru.erase(it->second);
         mp[{fp, pageNum}] = mru.begin();
         mru.begin()->pinned = true;
+        stats.pageHits++;
         return mru.begin()->pageData;
     }
 

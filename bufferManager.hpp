@@ -49,6 +49,7 @@ class BufStats{
     public:
     int accesses;
     int diskreads;
+    int pageHits;
 
     BufStats();
     void clear();
