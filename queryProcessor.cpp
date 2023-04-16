@@ -143,7 +143,7 @@ int main(){
     FILE *fp2 = fopen("fileBinary.bin", "rb");
 
     cout<<"Select a Replacement Algorithm:\n";
-    cout<<"1 LRU, 2 CLOCK, 3 MRU: ";
+    cout<<"1 LRU, 2 MRU, 3 CLOCK: ";
     int choice;
     cin>>choice;
 
