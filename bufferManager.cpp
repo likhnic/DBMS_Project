@@ -36,7 +36,7 @@ Frame::~Frame(){
 
 // constructor for LRUBufferManager
 LRUBufferManager::LRUBufferManager(int numFrames): numFrames(numFrames) {
-    file = fopen("bufferManager.txt", "w");
+    file = fopen("bufferManager.log", "w");
     fprintf(file, "LRU Buffer Manager\n");
 }
 
@@ -132,7 +132,7 @@ void LRUBufferManager::unpinPage(FILE*fp, int pageNum){
 // constructor for ClockBufferManager
 ClockBufferManager::ClockBufferManager(int numFrames): numFrames(numFrames), clock_hand(0), numPages(0){
     bufferPool = new Frame[numFrames];
-    file = fopen("bufferManager.txt", "w");
+    file = fopen("bufferManager.log", "w");
     fprintf(file, "Clock Buffer Manager\n");
 }
 
@@ -230,7 +230,7 @@ BufStats ClockBufferManager::getStats(){
 
 // constructor for MRUBufferManager
 MRUBufferManager::MRUBufferManager(int numFrames): numFrames(numFrames) {
-    file = fopen("bufferManager.txt", "w");
+    file = fopen("bufferManager.log", "w");
     fprintf(file, "MRU Buffer Manager\n");
 }
 
