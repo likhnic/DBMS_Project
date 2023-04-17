@@ -11,6 +11,10 @@ QueryProcessor::QueryProcessor(int numFrames, int replacementPolicy){
     }
 }
 
+/*
+SELECT * FROM Person WHERE col1 = value
+*/
+
 // process a select from query
 void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
     
@@ -26,27 +30,27 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
     for(int i=0;i<numPages;++i){
         // get page from buffer
         char *pageData = bufferManager->getPage(fp, i);
-        int numLeft = PAGE_SIZE;
         int numRecords;
         memcpy(&numRecords, pageData, sizeof(int));
         pageData += sizeof(int);
         while(numRecords--){
-            char name[20];
-            int age;
-            int weight;
-            memcpy(name, pageData,20*sizeof(char));
-            memcpy(&age, pageData+20*sizeof(char), sizeof(int));
-            memcpy(&weight, pageData+20*sizeof(char)+sizeof(int), sizeof(int));
+            Person p;
+            memcpy(&p, pageData, recordSize);
             pageData += recordSize;
-            numLeft -= recordSize;
-            if(col1==2 && age == atoi(value.c_str())){
-                cout<<name<<" "<<age<<" "<<weight<<endl;
+            if(col1 == 1){
+                if(strcmp(p.name, value.c_str()) == 0){
+                    cout<<p.name<<" "<<p.age<<" "<<p.weight<<endl;
+                }
             }
-            else if(col1==3 && weight == atoi(value.c_str())){
-                cout<<name<<" "<<age<<" "<<weight<<endl;
+            else if(col1 == 2){
+                if(p.age == stoi(value)){
+                    cout<<p.name<<" "<<p.age<<" "<<p.weight<<endl;
+                }
             }
-            else if(col1==1 && value == name){
-                cout<<name<<" "<<age<<" "<<weight<<endl;
+            else if(col1 == 3){
+                if(p.weight == stoi(value)){
+                    cout<<p.name<<" "<<p.age<<" "<<p.weight<<endl;
+                }
             }
         }
         // unpin page
@@ -59,13 +63,16 @@ void QueryProcessor::processSelectQuery(FILE *fp, int col1, string value){
 }
 
 
+/*
+SELECT * FROM Person JOIN Medical ON Person.col1 = Medical.col2
+*/
 void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
 
     int numPages1 = 0;
-    int recordSize1 = 20*sizeof(char) + 2*sizeof(int);
+    int recordSize1 = sizeof(Person);
 
     int numPages2 = 0;
-    int recordSize2 = 20*sizeof(char) + 2*sizeof(int);
+    int recordSize2 = sizeof(Medical);
     // get number of pages
     fseek(fp1, 0, SEEK_END);
     numPages1 = ftell(fp1)/PAGE_SIZE;
@@ -87,42 +94,52 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
                 cout<<"Number of Frames is too small\n";
                 exit(0);
             }
-            int x = 0;
             int page1Offset = 0;
             int numRecords1;
             memcpy(&numRecords1, pageData1, sizeof(int));
             page1Offset += sizeof(int);
             while(numRecords1--){
-                char name1[20];
-                x++;
-                int age1;
-                int weight1;
-                int page2Offset = 0;
-                memcpy(name1, pageData1+page1Offset,20*sizeof(char));
-                memcpy(&age1, pageData1+page1Offset+20*sizeof(char), sizeof(int));
-                memcpy(&weight1, pageData1+page1Offset+20*sizeof(char)+sizeof(int), sizeof(int));
+                Person p1;
+                memcpy(&p1, pageData1+page1Offset, recordSize1);
                 page1Offset += recordSize1;
                 int numRecords2;
                 memcpy(&numRecords2, pageData2, sizeof(int));
-                page2Offset += sizeof(int);
+                int page2Offset = sizeof(int);
                 while(numRecords2--){
-                    char name2[20];
-                    int age2;
-                    int weight2;
-                    memcpy(name2, pageData2+page2Offset,20*sizeof(char));
-                    memcpy(&age2, pageData2+page2Offset+20*sizeof(char), sizeof(int));
-                    memcpy(&weight2, pageData2+page2Offset+20*sizeof(char)+sizeof(int), sizeof(int));
+                    Medical m;
+                    memcpy(&m, pageData2+page2Offset, recordSize2);
                     page2Offset += recordSize2;
-                    string allCols1[3];
-                    allCols1[0] = name1;
-                    allCols1[1] = to_string(age1);
-                    allCols1[2] = to_string(weight1);
-                    string allCols2[3];
-                    allCols2[0] = name2;
-                    allCols2[1] = to_string(age2);
-                    allCols2[2] = to_string(weight2);
-                    if(allCols1[col1-1] == allCols2[col2-1]){
-                        cout<<name1<<" "<<age1<<" "<<weight1<<" "<<name2<<" "<<age2<<" "<<weight2<<endl;
+                    char field1[20];
+                    char field2[20];
+
+                    if(col1 == 1){
+                        strcpy(field1, p1.name);
+                    }
+                    else if(col1 == 2){
+                        strcpy(field1, to_string(p1.age).c_str());
+                    }
+                    else if(col1 == 3){
+                        strcpy(field1, to_string(p1.weight).c_str());
+                    }
+
+                    if(col2 == 1){
+                        strcpy(field2, m.name);
+                    }
+                    else if(col2 == 2){
+                        strcpy(field2, to_string(m.vaccinated).c_str());
+                    }
+                    else if(col2 == 3){
+                        strcpy(field2, m.disease);
+                    }
+                    else if(col2 == 4){
+                        strcpy(field2, m.treatment);
+                    }
+                    else if(col2 == 5){
+                        strcpy(field2, m.date);
+                    }
+
+                    if(strcmp(field1, field2) == 0){
+                        cout<<p1.name<<" "<<p1.age<<" "<<p1.weight<<" "<<m.name<<" "<<m.vaccinated<<" "<<m.disease<<" "<<m.treatment<<" "<<m.date<<endl;
                     }
                 }
             }
@@ -140,7 +157,7 @@ void QueryProcessor::processJoinQuery(FILE *fp1, FILE *fp2, int col1, int col2){
 int main(){
 
     FILE *fp1 = fopen("fileBinary.bin", "rb");
-    FILE *fp2 = fopen("fileBinary.bin", "rb");
+    FILE *fp2 = fopen("medicalBin.bin", "rb");
 
     cout<<"Select a Replacement Algorithm:\n";
     cout<<"1 LRU, 2 MRU, 3 CLOCK: ";

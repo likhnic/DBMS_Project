@@ -9,6 +9,20 @@ using namespace std;
 #define CLOCK 3
 #define PAGE_SIZE 4096
 
+typedef struct {
+    char name[20];
+    int age;
+    int weight;
+} Person;
+
+typedef struct {
+    char name[20];
+    int vaccinated;
+    char disease[20];
+    char treatment[20];
+    char date[20];
+} Medical;
+
 // process a select from query
 
 class QueryProcessor{
